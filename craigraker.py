@@ -41,6 +41,11 @@ async def scrape_ad_page(url, params=None):
     try:
         response = await fetch(url, params=params)
         soup = bs(response, "lxml")
+        
+    except Exception as e:
+        logging.debug(e)
+
+    else:
         page_text = soup("section",{"id":"postingbody"})[0].text
         page_text = page_text.replace('\n\nQR Code Link to This Post\n\n\n','') # Remove the junk
         page_text = page_text.replace(',','')
@@ -52,11 +57,7 @@ async def scrape_ad_page(url, params=None):
             contact_link = ''.join([local_cl_url, contact_link['href']])
                                     
         contact_email, contact_phone = await get_contact_info(contact_link)
-                
-    except Exception as e:
-        logging.debug(e)
-
-    finally:
+        
         return page_text, date, contact_email, contact_phone
 
 async def get_contact_info(url, params=None):
@@ -65,6 +66,11 @@ async def get_contact_info(url, params=None):
     try:
         response = await fetch(url, params=params)
         soup = bs(response, "lxml")
+        
+    except Exception as e:
+        logging.debug(e)
+        
+    else:
         email_address, phone_number = "N/A","N/A"
 
         for email in soup('p', class_='anonemail'):
@@ -75,10 +81,6 @@ async def get_contact_info(url, params=None):
             phone_number = phone.text
             phone_number = phone_numbe.replace(',','')
 
-    except Exception as e:
-        logging.debug(e)
-        
-    finally:
         return email_address, phone_number
 
 async def scrape_search_page(url, params=None, verbose=False, wanted=False, max_results=120):
@@ -93,6 +95,11 @@ async def scrape_search_page(url, params=None, verbose=False, wanted=False, max_
     try:
         response = await fetch(url, params=params)
         soup = bs(response, 'lxml')
+
+    except Exception as e:
+        logging.debug(e)
+        
+    else:
         results = []
 
         for link, counter in zip(soup("p",{"class":"result-info"}), range(max_results)):
@@ -143,15 +150,12 @@ async def scrape_search_page(url, params=None, verbose=False, wanted=False, max_
 
             else:
                 results.append((ad_title, price, hood, ad_url, date_updated))
-
-    except Exception as e:
-        logging.debug(e)
-        
-    finally:
+                
         return results
         
 async def get_total_results(url, params=None):
     """ Returns the total number of search results"""
+
     try:
         response = await fetch(url, params=params)
         soup = bs(response, 'lxml')
@@ -338,7 +342,7 @@ if __name__ == '__main__':
     if args.sortrecent:
         results.sort(key=lambda x: x[-1], reverse=True)
 
-    print_result(['Title', 'Price', 'Location', 'Posting Information', 'Email', 'Phone', 'Url', 'Updated', 'Posted'], color=args.color)
+    print_result(['Title', 'Price', 'Location', 'Posting Information', 'Email', 'Phone', 'Url', 'Updated', 'Posted'], color=args.color) # Headers for csv columns
 
     for result in results:
         print_result(result, color=args.color)
