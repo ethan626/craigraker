@@ -235,12 +235,14 @@ def scrape(url, query, max_results=120, verbose=False, wanted=False):
     """ Main driver """
     
     try:
-        tasks = [asyncio.ensure_future(get_total_results(url, params={'query':query}))] # Get the max number of results for this query
+        tasks = [asyncio.ensure_future(get_total_results(url, params={'query': query, 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}))] # Get the max number of results for this query
         completed, _ = LOOP.run_until_complete(asyncio.wait(tasks))
 
         total_results = [i.result() if not max_results else max_results for i in completed if i.result()][0]        
 
-        parameters = [{"s":i, "query":query} for i in range(0,total_results,120)]    
+        parameters = [{"s": i, "query": query, "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36" } for i in range(0,total_results,120)]    
+
+       
         tasks = [asyncio.ensure_future(scrape_search_page(url, params=param, max_results=max_results, verbose=verbose, wanted=wanted))
                  for param in parameters]        
 

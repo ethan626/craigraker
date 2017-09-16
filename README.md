@@ -1,6 +1,10 @@
 # craigraker
 The smart craigslist scraper.
 
+
+
+
+
 Example usage:
 
 python craigraker.py -q your-search -w your-cl-location --color --verbose --sortlocation -s "for sale"
