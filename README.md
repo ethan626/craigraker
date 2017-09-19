@@ -1,10 +1,7 @@
 # craigraker
 The smart craigslist scraper.
 
-
-
-
-
+Make sure craigraker.py and craigraker_functions.py are in the same directory.
 Example usage:
 
 python craigraker.py -q your-search -w your-cl-location --color --verbose --sortlocation -s "for sale"
