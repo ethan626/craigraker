@@ -1,5 +1,5 @@
 #!/bin/python
-from .craigraker_functions import *
+from craigraker_functions import *
 import argparse
 
 import configparser
@@ -65,12 +65,11 @@ else:
 local_cl_url =  "".join(["https://",city, ".craigslist.org"])
 search_url = "".join(["https://", city, ".craigslist.org/search/"])    
 
+LOOP = asyncio.get_event_loop()
+
 ########### Main Program Logic ################
 
 if __name__ == '__main__':
-    LOOP = asyncio.get_event_loop()
-    EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=20)
-
     max_results = 2500
                                        
     if args.firstpage:           
@@ -112,5 +111,4 @@ if __name__ == '__main__':
     for result in results:
         print_result(result, color=args.color)
         
-EXECUTOR.shutdown(wait=False)
-LOOP.close()
+    LOOP.close()
