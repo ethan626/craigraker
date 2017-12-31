@@ -10,7 +10,7 @@ import aiohttp
 import math
 from dateutil.parser import parse
 import logging
-from craigraker import LOOP, local_cl_url, search_url 
+from craigraker import LOOP 
 
 """
 
@@ -35,13 +35,12 @@ async def fetch(url, params=None):
     async with aiohttp.request('GET', url, params=params) as response:
         return await response.text()
     
-async def scrape_ad_page(url, params=None):    
+async def scrape_ad_page(url, contact_info=False, params=None):    
     """ Returns the info from a cl-ad page. """
     
     try:
         response = await fetch(url, params=params)
         soup = bs(response, "lxml")
-        
     except Exception as e:
         logging.debug(e)
 
@@ -55,8 +54,13 @@ async def scrape_ad_page(url, params=None):
                 
         for contact_link in soup('a', {'id':'replylink'}):
             contact_link = ''.join([local_cl_url, contact_link['href']])
-                                    
-        contact_email, contact_phone = await get_contact_info(contact_link)
+
+        if contact_info:
+            try:
+                contact_email, contact_phone = await get_contact_info(contact_link)
+
+            except Exception as e:              # Ignore pages we can't get info from.  
+                logging.debug(e)
         
         return page_text, date, contact_email, contact_phone
 
@@ -83,7 +87,7 @@ async def get_contact_info(url, params=None):
 
         return email_address, phone_number
 
-async def scrape_search_page(url, params=None, verbose=False, wanted=False, max_results=120):
+async def scrape_search_page(url, local_cl_url, params=None, verbose=False, wanted=False, max_results=120):
 
     """ 
         Returns (ad title, price, neighborhood,link) or if verbose (ad title, price, neighborhood, ad text, link)
@@ -103,8 +107,7 @@ async def scrape_search_page(url, params=None, verbose=False, wanted=False, max_
         results = []
 
         for link, counter in zip(soup("p",{"class":"result-info"}), range(max_results)):
-            price, hood = "N/A", "N/A" # Incase of none
-
+    
             if wanted:              # Ignore wanted ads
                 if 'wanted' in link.text.lower():
                     continue
@@ -142,11 +145,10 @@ async def scrape_search_page(url, params=None, verbose=False, wanted=False, max_
 
                 try:
                     page_text, date_posted, contact_email, contact_phone = await scrape_ad_page(full_url)
+                    results.append((ad_title, price, hood, page_text, contact_email, contact_phone, ad_url, date_updated, date_posted))
 
                 except Exception as e:
                     logging.debug(e)
-
-                results.append((ad_title, price, hood, page_text, contact_email, contact_phone, ad_url, date_updated, date_posted))
 
             else:
                 results.append((ad_title, price, hood, ad_url, date_updated))
@@ -231,7 +233,7 @@ def parse_section(user_choice):
     if user_choice.lower() == "services":
         return "bbb"
 
-def scrape(url, query, max_results=120, verbose=False, wanted=False):
+def scrape(url, local_cl_url, query, max_results=120, verbose=False, wanted=False):
     """ Main driver """
     
     try:
@@ -240,9 +242,9 @@ def scrape(url, query, max_results=120, verbose=False, wanted=False):
 
         total_results = [i.result() if not max_results else max_results for i in completed if i.result()][0]        
 
-        parameters = [{"s": i, "query": query, "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36" } for i in range(0,total_results,120)]    
+        parameters = [{"s": result_count, "query": query, "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/538.36" } for result_count in range(0, total_results, 120)]    
        
-        tasks = [asyncio.ensure_future(scrape_search_page(url, params=param, max_results=max_results, verbose=verbose, wanted=wanted))
+        tasks = [asyncio.ensure_future(scrape_search_page(url, local_cl_url, params=param, max_results=max_results, verbose=verbose, wanted=wanted))
                  for param in parameters]        
 
         completed, _ = LOOP.run_until_complete(asyncio.wait(tasks))    
