@@ -1,7 +1,6 @@
 #!/bin/python
 import argparse
 import configparser
-import traceback
 from os.path import expanduser, exists
 from craigraker_functions import *
 from os import _exit
@@ -58,7 +57,8 @@ def main():
     config = configparser.ConfigParser()
 
     if not exists(expanduser("~/.craigrakerrc")): # if path does not exist, create the config file in the home directory
-        config["DEFAULT"] = {"city":"seattle", "sublocation":"", "section": "", "maxresults": 2500, "firstpage": False, "sort": False}
+        config["DEFAULT"] = {"city":"seattle", "sublocation":"", "section": "",
+                             "maxresults": 2500, "firstpage": False, "sort": False}
 
         with open(expanduser("~/.craigrakerrc"),"w+") as configfile:        
             config.write(configfile)
@@ -124,7 +124,9 @@ def main():
     if args.donotsort:
         sort = False
 
-    if not args.sortlocation and not args.sortpricemin and not args.sortpricemax and not args.sortpast and not args.sortrecent and not args.donotsort:
+    if not args.sortlocation and not args.sortpricemin
+        and not args.sortpricemax and not args.sortpast
+            and not args.sortrecent and not args.donotsort:
        if config["DEFAULT"]["sort"].lower() == "false":
            sort = False
        else:
@@ -145,7 +147,6 @@ def main():
                                                wanted=args.ignorewanted)]
 
     except TypeError as e:      # Most likely caused by results being None and thus not iterable. No results will be printed later in the script
-        # print(traceback.format_exc()) 
         results = [] # No results. Variable name is referenced later so we need results in scope 
         
     if sort:
@@ -164,7 +165,7 @@ def main():
                 f.write(result)
                 f.write('\n')
         
-    LOOP.close()                # Close asyncio event 
+    LOOP.close()                # Close asyncio event loop
 
 if __name__ == "__main__":
     main()
