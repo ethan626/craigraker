@@ -54,19 +54,19 @@ def main():
 
     """ Fill in the values from the users config and/or command line arguments. """
     if args.Location:
-        city = args.Location
+        city = args.Location.lower()
 
     if not args.Location:
-        city = config["DEFAULT"]["city"]
+        city = config["DEFAULT"]["city"].lower()
 
     if args.Sublocation:
-        sublocation = args.Sublocation
+        sublocation = args.Sublocation.lower()
 
     if not args.Sublocation:
-        sublocation = config["DEFAULT"]["sublocation"]
+        sublocation = config["DEFAULT"]["sublocation"].lower()
 
     if args.Section:
-        section = args.Section
+        section = args.Section.lower()
 
     if not args.Section:        # Default to for sale
         section = "sss?"
@@ -108,6 +108,7 @@ def main():
     if not args.Sort:
        if config["DEFAULT"]["sort"].lower() == "false":
            sort = False
+
        else:
            try:
                 sort = exec(config["DEFAULT"]["sort"])
@@ -133,6 +134,7 @@ def main():
 
         for result in results:
             print_result(result)
+            print()
 
     if args.File:                
         with open(args.File, 'a+') as f:
